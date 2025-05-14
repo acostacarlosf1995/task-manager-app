@@ -1,0 +1,8 @@
+# Dependencias
+**/node_modules/
+
+# Configuración del IDE (JetBrains)
+**/.idea/
+
+# Archivo de variables de entorno
+**/.env
