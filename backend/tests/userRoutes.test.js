@@ -53,7 +53,8 @@ describe('User API endpoints', () => {
                 });
 
             expect(res.statusCode).toEqual(400);
-            expect(res.body.message).toBe('Please add all fields');
+            expect(res.body).toHaveProperty('errors');
+            expect(Array.isArray(res.body.errors)).toBe(true);
         });
     });
 
@@ -116,7 +117,16 @@ describe('User API endpoints', () => {
                 });
 
             expect(res.statusCode).toEqual(400);
-            expect(res.body.message).toBe('Please add email and password');
+            expect(res.body).toHaveProperty('errors');
+            expect(Array.isArray(res.body.errors)).toBe(true);
+
+            const emailError = res.body.errors.find(err => err.path === 'email');
+            expect(emailError).toBeDefined();
+            expect(emailError.msg).toBe('The email is mandatory');
+
+            const passwordError = res.body.errors.find(err => err.path === 'password');
+            expect(passwordError).toBeDefined();
+            expect(passwordError.msg).toBe('The password is mandatory');
         });
     });
 })

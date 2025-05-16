@@ -24,8 +24,25 @@ const createTask = async (req, res, next) => {
 
 const getTasks = async (req, res, next) => {
     try {
-        const tasks = await Task.find({user: req.user._id}).sort({createdAt: -1});
-        res.status(200).json(tasks);
+        const page = parseInt(req.query.page, 10) || 1;
+        const limit = parseInt(req.query.limit, 10) || 10;
+        const skip = (page - 1) * limit;
+
+        const totalTasks = await Task.countDocuments({user: req.user._id});
+
+        const tasks = await Task.find({user: req.user._id})
+            .sort({createdAt: -1})
+            .skip(skip)
+            .limit(limit);
+
+        res.json({
+            currentPage: page,
+            totalPages: Math.ceil(totalTasks / limit),
+            totalTasks,
+            countOnPage: tasks.length,
+            tasks
+        })
+
     } catch (error) {
         next(error);
     }

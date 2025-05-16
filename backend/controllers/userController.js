@@ -6,14 +6,9 @@ const router = require("../routes/userRoutes");
 
 const registerUser = async (req, res, next) => {
     try {
-        const { name, email, password } = req.body;
+        const {name, email, password} = req.body;
 
-        if (!name || !email || !password) {
-            res.status(400);
-            throw new Error('Please add all fields');
-        }
-
-        const userExists = await User.findOne({ email });
+        const userExists = await User.findOne({email});
 
         if (userExists) {
             res.status(400);
@@ -45,14 +40,14 @@ const registerUser = async (req, res, next) => {
 
 const loginUser = async (req, res, next) => {
     try {
-        const { email, password } = req.body;
+        const {email, password} = req.body;
 
-        if (!email || !password) {
-            res.status(400);
-            throw new Error('Please add email and password');
-        }
+        // if (!email || !password) {
+        //     res.status(400);
+        //     throw new Error('Please add email and password');
+        // }
 
-        const user = await User.findOne({ email }).select('+password');
+        const user = await User.findOne({email}).select('+password');
 
         if (user && (await bcrypt.compare(password, user.password))) {
             res.status(200).json({

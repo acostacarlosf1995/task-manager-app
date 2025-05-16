@@ -52,7 +52,9 @@ describe('Task API Endpoints', () => {
                 .send({description: 'Task without title'});
 
             expect(res.statusCode).toEqual(400);
-            expect(res.body.message).toBe('Title for task is mandatory');
+            expect(res.body).toHaveProperty('errors');
+            expect(Array.isArray(res.body.errors)).toBe(true);
+            expect(res.body.errors[0].msg).toBe('Title is mandatory.');
         });
 
         it('should return 401 if no token is provided', async () => {
@@ -66,6 +68,52 @@ describe('Task API Endpoints', () => {
     });
 
     describe('GET /api/tasks', () => {
+        it('should get all tasks for an authenticated user with default pagination', async () => {
+            await request(app).post('/api/tasks').set('Authorization', `Bearer ${token}`).send({
+                title: 'Task P1',
+                user: userId
+            });
+            await request(app).post('/api/tasks').set('Authorization', `Bearer ${token}`).send({
+                title: 'Task P2',
+                user: userId
+            });
+
+            const res = await request(app)
+                .get('/api/tasks')
+                .set('Authorization', `Bearer ${token}`);
+
+            expect(res.statusCode).toEqual(200);
+            expect(res.body).toHaveProperty('tasks');
+            expect(Array.isArray(res.body.tasks)).toBe(true);
+            expect(res.body).toHaveProperty('currentPage', 1);
+            expect(res.body).toHaveProperty('totalPages');
+            expect(res.body).toHaveProperty('totalTasks');
+            res.body.tasks.forEach(task => {
+                expect(task.user).toBe(userId);
+            });
+        });
+
+        it('should get tasks with specific pagination parameters', async () => {
+            for (let i = 1; i <= 7; i++) {
+                await request(app).post('/api/tasks').set('Authorization', `Bearer ${token}`).send({
+                    title: `Task Pag ${i}`,
+                    user: userId
+                });
+            }
+
+            const limit = 3;
+            const page = 2;
+            const res = await request(app)
+                .get(`/api/tasks?page=${page}&limit=${limit}`)
+                .set('Authorization', `Bearer ${token}`);
+
+            expect(res.statusCode).toEqual(200);
+            expect(res.body.tasks.length).toBe(limit);
+            expect(res.body.currentPage).toBe(page);
+            expect(res.body.totalPages).toBe(Math.ceil(7 / limit));
+            expect(res.body.totalTasks).toBe(7);
+        });
+
         it('should get all tasks for an authenticated user', async () => {
             await request(app)
                 .post('/api/tasks').set('Authorization', `Bearer ${token}`)
@@ -79,9 +127,10 @@ describe('Task API Endpoints', () => {
                 .set('Authorization', `Bearer ${token}`);
 
             expect(res.statusCode).toEqual(200);
-            expect(Array.isArray(res.body)).toBe(true);
-            expect(res.body.length).toBeGreaterThanOrEqual(2);
-            res.body.forEach(task => {
+            expect(res.body).toHaveProperty('tasks');
+            expect(Array.isArray(res.body.tasks)).toBe(true);
+            expect(res.body.tasks.length).toBeGreaterThanOrEqual(2);
+            res.body.tasks.forEach(task => {
                 expect(task.user).toBe(userId);
             });
         });
@@ -122,8 +171,14 @@ describe('Task API Endpoints', () => {
             const res = await request(app)
                 .get(`/api/tasks/${invalidId}`)
                 .set('Authorization', `Bearer ${token}`);
+
             expect(res.statusCode).toEqual(400);
-            expect(res.body.message).toBe('Invalid ID');
+            expect(res.body).toHaveProperty('errors');
+            expect(Array.isArray(res.body.errors)).toBe(true);
+
+            const idError = res.body.errors.find(err => err.path === 'id');
+            expect(idError).toBeDefined();
+            expect(idError.msg).toBe('Invalid task ID.');
         });
 
         it('PUT /:id - should update a task successfully', async () => {
