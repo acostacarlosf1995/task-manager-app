@@ -1,6 +1,6 @@
 const Task = require('../models/Task');
 
-const createTask = async (req, res) => {
+const createTask = async (req, res, next) => {
     try {
         const {title, description, status, dueDate} = req.body;
 
@@ -18,23 +18,37 @@ const createTask = async (req, res) => {
 
         res.status(201).json(task);
     } catch (error) {
-        console.error('Error creating task:', error);
-        const statusCode = res.statusCode === 200 ? (error.name === 'ValidationError' ? 400 : 500) : res.statusCode;
-        res.status(statusCode).json({message: error.message});
+        next(error);
     }
 }
 
-const getTasks = async (req, res) => {
+const getTasks = async (req, res, next) => {
     try {
-        const tasks = await Task.find({user: req.user._id}).sort({createdAt: -1});
-        res.status(200).json(tasks);
+        const page = parseInt(req.query.page, 10) || 1;
+        const limit = parseInt(req.query.limit, 10) || 10;
+        const skip = (page - 1) * limit;
+
+        const totalTasks = await Task.countDocuments({user: req.user._id});
+
+        const tasks = await Task.find({user: req.user._id})
+            .sort({createdAt: -1})
+            .skip(skip)
+            .limit(limit);
+
+        res.json({
+            currentPage: page,
+            totalPages: Math.ceil(totalTasks / limit),
+            totalTasks,
+            countOnPage: tasks.length,
+            tasks
+        })
+
     } catch (error) {
-        console.error('Error fetching tasks:', error);
-        res.status(500).json({message: 'Server error fetching tasks'});
+        next(error);
     }
 }
 
-const updateTask = async (req, res) => {
+const updateTask = async (req, res, next) => {
     try {
         const {title, description, status, dueDate} = req.body;
         const taskId = req.params.id;
@@ -58,13 +72,11 @@ const updateTask = async (req, res) => {
 
         res.status(200).json(updatedTask);
     } catch (error) {
-        console.error('Error updating task:', error);
-        const statusCode = res.statusCode === 200 ? (error.name === 'ValidationError' ? 400 : 500) : res.statusCode;
-        res.status(statusCode).json({message: error.message});
+        next(error)
     }
 }
 
-const deleteTask = async (req, res) => {
+const deleteTask = async (req, res, next) => {
     try {
         const taskId = req.params.id;
 
@@ -82,9 +94,28 @@ const deleteTask = async (req, res) => {
 
         res.status(200).json({message: 'Task deleted successfully', id: taskId});
     } catch (error) {
-        console.error('Error deleting task:', error);
-        const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
-        res.status(statusCode).json({message: error.message});
+        next(error)
+    }
+}
+
+const getTaskById = async (req, res, next) => {
+    try {
+        const taskId = req.params.id;
+
+        const task = await Task.findById(taskId)
+
+        if (!task) {
+            return res.status(404).json({message: 'Task not found'});
+        }
+
+        if (task.user.toString() !== req.user._id.toString()) {
+            return res.status(401).json({message: 'User not authorized to view this task'});
+        }
+
+        res.status(200).json(task);
+
+    } catch (error) {
+        next(error)
     }
 }
 
@@ -92,5 +123,6 @@ module.exports = {
     createTask,
     getTasks,
     updateTask,
-    deleteTask
+    deleteTask,
+    getTaskById,
 }
