@@ -4,7 +4,7 @@ const generateToken = require('../utils/generateToken');
 const jwt = require('jsonwebtoken');
 const router = require("../routes/userRoutes");
 
-const registerUser = async (req, res) => {
+const registerUser = async (req, res, next) => {
     try {
         const { name, email, password } = req.body;
 
@@ -39,14 +39,11 @@ const registerUser = async (req, res) => {
             throw new Error('Invalid user data');
         }
     } catch (error) {
-        const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
-        res.status(statusCode).json({
-            message: error.message,
-        });
+        next(error)
     }
 }
 
-const loginUser = async (req, res) => {
+const loginUser = async (req, res, next) => {
     try {
         const { email, password } = req.body;
 
@@ -70,10 +67,7 @@ const loginUser = async (req, res) => {
             throw new Error('Invalid email or password');
         }
     } catch (error) {
-        const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
-        res.status(statusCode).json({
-            message: error.message,
-        });
+        next(error)
     }
 }
 
