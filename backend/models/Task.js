@@ -6,6 +6,11 @@ const taskSchema = new mongoose.Schema({
         required: true,
         ref: 'User',
     },
+    project: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: [true, 'Please add a project'],
+        ref: 'Project',
+    },
     title: {
         type: String,
         required: [true, 'Please add a title for task'],

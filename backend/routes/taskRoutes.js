@@ -16,6 +16,9 @@ const taskValidationRules = [
         .trim()
         .notEmpty().withMessage('Title is mandatory.')
         .isLength({min: 3}).withMessage('Title must be at least 3 characters long.'),
+    body('projectId')
+        .not().isEmpty().withMessage('Project ID is mandatory.')
+        .isMongoId().withMessage('Invalid project ID.'),
     body('description')
         .optional()
         .trim(),
