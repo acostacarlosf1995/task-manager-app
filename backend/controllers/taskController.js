@@ -1,26 +1,40 @@
 const Task = require('../models/Task');
+const User = require('../models/User');
+const Project = require('../models/Project');
 
 const createTask = async (req, res, next) => {
     try {
-        const {title, description, status, dueDate} = req.body;
+        const {title, description, status, dueDate, projectId} = req.body;
 
         if (!title) {
-            return res.status(400).json({message: 'Title for task is mandatory'});
+            res.status(400);
+            throw new Error('The title is required');
+        }
+        if (!projectId) { // Validar que se envíe el ID del proyecto
+            res.status(400);
+            throw new Error('The projectId is required');
+        }
+
+        const projectExists = await Project.findOne({_id: projectId, user: req.user._id});
+
+        if (!projectExists) {
+            res.status(404);
+            throw new Error('Project not found or does not belong to the user');
         }
 
         const task = await Task.create({
             user: req.user._id,
+            project: projectId, // Guardarmos la referencia al proyecto
             title,
             description,
             status,
             dueDate,
         });
-
         res.status(201).json(task);
     } catch (error) {
         next(error);
     }
-}
+};
 
 const getTasks = async (req, res, next) => {
     try {
@@ -41,32 +55,6 @@ const getTasks = async (req, res, next) => {
         }
 
         // Filtrar por fecha de vencimiento (dueDate)
-        // if (req.query.dueDate) {
-        //     const dateParam = req.query.dueDate;
-        //
-        //     const startOfDay = new Date(Date.UTC(
-        //         parseInt(dateParam.substring(0, 4), 10),
-        //         parseInt(dateParam.substring(5, 7), 10) - 1,
-        //         parseInt(dateParam.substring(8, 10), 10),
-        //         0, 0, 0, 0
-        //     ));
-        //
-        //     if (!isNaN(startOfDay.getTime())) {
-        //         const endOfDay = new Date(startOfDay);
-        //         endOfDay.setUTCDate(startOfDay.getUTCDate() + 1);
-        //         endOfDay.setUTCHours(0, 0, 0, -1);
-        //
-        //         const endOfDayCorrected = new Date(Date.UTC(
-        //             startOfDay.getUTCFullYear(),
-        //             startOfDay.getUTCMonth(),
-        //             startOfDay.getUTCDate(),
-        //             23, 59, 59, 999
-        //         ));
-        //
-        //         filters.dueDate = {$gte: startOfDay, $lte: endOfDayCorrected};
-        //     }
-        // }
-
         if (req.query.dueDate) {
             const dateParam = req.query.dueDate;
 
@@ -106,8 +94,6 @@ const getTasks = async (req, res, next) => {
                 sortOptions = {[sortField]: sortOrder};
             }
         }
-
-        console.log('Applied Filters:', filters);
 
         // Consultas a la Base de Datos
         const totalTasks = await Task.countDocuments(filters);
@@ -199,10 +185,29 @@ const getTaskById = async (req, res, next) => {
     }
 }
 
+const getTasksByProject = async (req, res, next) => {
+    try {
+        const projectId = req.params.id;
+
+        const project = await Project.findOne({_id: projectId, user: req.user._id});
+        if (!project) {
+            res.status(404);
+            throw new Error('Project not found or does not belong to the user');
+        }
+
+        const tasks = await Task.find({user: req.user._id, project: projectId})
+            .sort({createdAt: -1});
+        res.json(tasks);
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     createTask,
     getTasks,
     updateTask,
     deleteTask,
     getTaskById,
+    getTasksByProject,
 }

@@ -4,6 +4,7 @@ const express = require('express')
 const connectDB = require('./config/db')
 const userRoutes = require('./routes/userRoutes')
 const taskRoutes = require('./routes/taskRoutes')
+const projectRoutes = require('./routes/projectRoutes')
 
 if (process.env.NODE_ENV !== 'test') {
     connectDB();
@@ -20,8 +21,8 @@ app.get('/', (req, res) => {
 })
 
 app.use('/api/users', userRoutes)
-
 app.use('/api/tasks', taskRoutes)
+app.use('/api/projects', projectRoutes);
 
 app.use((req, res, next) => {
     const error = new Error(`Not Found - ${req.originalUrl}`)
