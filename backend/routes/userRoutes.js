@@ -8,12 +8,11 @@ const {protect} = require('../middleware/authMiddleware');
 const registerValidationRules = [
     body('name')
         .trim()
-        .not().isEmpty()
-        .withMessage('Please add a name')
+        .not().isEmpty().withMessage('Please add a name')
         .isLength({min: 2}).withMessage('Name must be at least 2 characters'),
     body('email')
         .trim()
-        .notEmpty().withMessage('The email is mandatory')
+        .not().isEmpty().withMessage('The email is mandatory')
         .isEmail().withMessage('Please add a valid email')
         .normalizeEmail(),
     body('password')
