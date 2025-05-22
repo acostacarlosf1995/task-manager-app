@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
-import {useNavigate} from 'react-router-dom';
-import { register, reset as resetAuthStatus } from '../../features/auth/authSlice';
+import {useNavigate, Link as RouterLink} from 'react-router-dom';
+import {register, reset as resetAuthStatus} from '../../features/auth/authSlice';
 
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
@@ -16,30 +16,39 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
 
 const RegisterPage = () => {
-    const [formError, setFormError] = useState('');
     const [formData, setFormData] = useState({
         name: '',
         email: '',
         password: '',
         confirmPassword: '',
     });
+    const [formError, setFormError] = useState('');
 
     const {name, email, password, confirmPassword} = formData;
 
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    // Seleccionar el estado de autenticación del store de Redux
-    const {user, token, isAuthenticated, isLoading, isError, isSuccess, message} = useSelector(
+    const {isAuthenticated, isLoading, isError, isSuccess, message, validationErrors} = useSelector(
         (state) => state.auth
     );
 
-    useEffect(() => {
-        if (isError && message) {
-            console.error("Error de Registro:", message);
+    const getFieldError = (fieldName) => {
+        if (validationErrors && validationErrors.length > 0) {
+            const error = validationErrors.find(err => err.path === fieldName);
+            return error ? error.msg : null;
         }
+        return null;
+    };
 
-        if (isSuccess || isAuthenticated) {
+    // Mensajes de error específicos para cada campo
+    const nameErrorMessage = getFieldError('name');
+    const emailErrorMessage = getFieldError('email');
+    const passwordErrorMessage = getFieldError('password');
+
+    useEffect(() => {
+        console.log(`[LoginPage useEffect] isAuth: ${isAuthenticated}, isSuccess: ${isSuccess}`);
+        if (isAuthenticated) {
             navigate('/dashboard');
         }
 
@@ -48,10 +57,10 @@ const RegisterPage = () => {
                 dispatch(resetAuthStatus());
             }
         };
-    }, [isAuthenticated, isSuccess, isError, message, navigate, dispatch]);
-
+    }, [isAuthenticated, isSuccess, isError, navigate, dispatch]);
 
     const onChange = (e) => {
+        setFormError('');
         setFormData((prevState) => ({
             ...prevState,
             [e.target.name]: e.target.value,
@@ -60,14 +69,15 @@ const RegisterPage = () => {
 
     const onSubmit = (e) => {
         e.preventDefault();
-        setFormError(''); // Limpiar errores previos del formulario
-        dispatch(resetAuthStatus()); // Limpiar errores de Redux
+        dispatch(resetAuthStatus());
+        setFormError('');
+        // dispatch(resetAuthStatus());
 
         if (password !== confirmPassword) {
-            dispatch(resetAuthStatus());
             setFormError('Passwords do not match');
             return;
         }
+
         const userData = {name, email, password};
         dispatch(register(userData));
     };
@@ -88,23 +98,23 @@ const RegisterPage = () => {
                 <Typography component="h1" variant="h5">
                     Sign Up
                 </Typography>
-
                 {formError && (
                     <Alert severity="error" sx={{width: '100%', mt: 2}}>
                         {formError}
                     </Alert>
                 )}
-                {isError && message && (typeof message === 'string') && ( // Mostrar error de Redux/API
-                    <Alert severity="error" sx={{width: '100%', mt: 2}}>
+
+                {isError && message && !validationErrors?.length && (typeof message === 'string') && (
+                    <Alert severity="error" sx={{width: '100%', mt: 2}} onClose={() => dispatch(resetAuthStatus())}>
                         {message}
                     </Alert>
                 )}
 
-
-                <Box component="form" noValidate onSubmit={onSubmit} sx={{mt: 3}}>
-                    <Grid container spacing={2}>
-                        <Grid item xs={12}>
+                <Box component="form" onSubmit={onSubmit} noValidate sx={{mt: 1}}>
+                    {/*<Grid container spacing={2}>*/}
+                    {/*    <Grid item xs={12}>*/}
                             <TextField
+                                margin="normal"
                                 autoComplete="name"
                                 name="name"
                                 required
@@ -114,10 +124,13 @@ const RegisterPage = () => {
                                 autoFocus
                                 value={name}
                                 onChange={onChange}
+                                error={!!nameErrorMessage}
+                                helperText={nameErrorMessage}
                             />
-                        </Grid>
-                        <Grid item xs={12}>
+                        {/*</Grid>*/}
+                        {/*<Grid item xs={12}>*/}
                             <TextField
+                                margin="normal"
                                 required
                                 fullWidth
                                 id="email"
@@ -126,10 +139,13 @@ const RegisterPage = () => {
                                 autoComplete="email"
                                 value={email}
                                 onChange={onChange}
+                                error={!!emailErrorMessage}
+                                helperText={emailErrorMessage}
                             />
-                        </Grid>
-                        <Grid item xs={12}>
+                        {/*</Grid>*/}
+                        {/*<Grid item xs={12}>*/}
                             <TextField
+                                margin="normal"
                                 required
                                 fullWidth
                                 name="password"
@@ -139,10 +155,13 @@ const RegisterPage = () => {
                                 autoComplete="new-password"
                                 value={password}
                                 onChange={onChange}
+                                error={!!passwordErrorMessage}
+                                helperText={passwordErrorMessage}
                             />
-                        </Grid>
-                        <Grid item xs={12}>
+                        {/*</Grid>*/}
+                        {/*<Grid item xs={12}>*/}
                             <TextField
+                                margin="normal"
                                 required
                                 fullWidth
                                 name="confirmPassword"
@@ -152,9 +171,10 @@ const RegisterPage = () => {
                                 autoComplete="new-password"
                                 value={confirmPassword}
                                 onChange={onChange}
+                                error={!!formError}
                             />
-                        </Grid>
-                    </Grid>
+                        {/*</Grid>*/}
+                    {/*</Grid>*/}
                     <Button
                         type="submit"
                         fullWidth
@@ -162,11 +182,11 @@ const RegisterPage = () => {
                         sx={{mt: 3, mb: 2}}
                         disabled={isLoading}
                     >
-                        {isLoading ? <CircularProgress size={24}/> : 'Sign Up'}
+                        {isLoading ? <CircularProgress size={24} color="inherit"/> : 'Sign Up'}
                     </Button>
                     <Grid container justifyContent="flex-end">
                         <Grid item>
-                            <Link href="/login" variant="body2">
+                            <Link component={RouterLink} to="/login" variant="body2">
                                 Already have an account? Sign in
                             </Link>
                         </Grid>
