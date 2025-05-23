@@ -117,9 +117,9 @@ const LoginPage = () => {
                         {isLoading ? <CircularProgress size={24} color="inherit"/> : 'Sign In'}
                     </Button>
                     <Grid container>
-                        <Grid item xs>
+                        <Grid>
                         </Grid>
-                        <Grid item>
+                        <Grid>
                             <Link component={RouterLink} to="/register" variant="body2">
                                 {"Don't have an account? Sign Up"}
                             </Link>
