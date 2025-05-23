@@ -38,14 +38,6 @@ const DashboardPage = () => {
                 <Typography variant="body1" gutterBottom>
                     This is your protected dashboard area. More features coming soon!
                 </Typography>
-                <Button
-                    variant="contained"
-                    color="secondary"
-                    onClick={handleLogout}
-                    sx={{mt: 3}}
-                >
-                    Logout
-                </Button>
             </Box>
         </Container>
     );
