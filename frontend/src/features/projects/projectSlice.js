@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import {createSlice, createAsyncThunk} from '@reduxjs/toolkit';
 import projectService from './projectService';
 
 const initialState = {
@@ -42,6 +42,22 @@ export const getProjects = createAsyncThunk(
     }
 );
 
+export const updateProject = createAsyncThunk(
+    'projects/update',
+    async ({projectId, projectData}, thunkAPI) => { // Recibe un objeto con projectId y projectData
+        try {
+            const token = thunkAPI.getState().auth.token;
+            return await projectService.updateProject(projectId, projectData, token);
+        } catch (error) {
+            const message =
+                (error.response && error.response.data && (error.response.data.message || (error.response.data.errors && error.response.data.errors[0].msg))) ||
+                error.message ||
+                error.toString();
+            return thunkAPI.rejectWithValue(message);
+        }
+    }
+);
+
 export const projectSlice = createSlice({
     name: 'project',
     initialState,
@@ -74,7 +90,7 @@ export const projectSlice = createSlice({
             })
             .addCase(getProjects.fulfilled, (state, action) => {
                 state.isLoading = false;
-                state.isSuccess = true;
+                // state.isSuccess = true;
                 state.projects = action.payload;
             })
             .addCase(getProjects.rejected, (state, action) => {
@@ -82,10 +98,27 @@ export const projectSlice = createSlice({
                 state.isError = true;
                 state.message = action.payload;
                 state.projects = [];
+            })
+            .addCase(updateProject.pending, (state) => {
+                state.isLoading = true;
+            })
+            .addCase(updateProject.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.isSuccess = true;
+                const index = state.projects.findIndex(project => project._id === action.payload._id);
+                if (index !== -1) {
+                    state.projects[index] = action.payload;
+                }
+                state.message = 'Project updated successfully!';
+            })
+            .addCase(updateProject.rejected, (state, action) => {
+                state.isLoading = false;
+                state.isError = true;
+                state.message = action.payload;
             });
     },
 });
 
-export const { resetProjectStatus } = projectSlice.actions;
+export const {resetProjectStatus} = projectSlice.actions;
 
 export default projectSlice.reducer;
