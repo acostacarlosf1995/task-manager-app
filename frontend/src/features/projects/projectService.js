@@ -32,11 +32,22 @@ const updateProject = async (projectId, projectData, token) => {
     return response.data;
 };
 
+const deleteProject = async (projectId, token) => {
+    const config = {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    };
+    const response = await axios.delete(API_URL + projectId, config);
+    return response.data;
+};
+
 
 const projectService = {
     createProject,
     getProjects,
     updateProject,
+    deleteProject,
 };
 
 export default projectService;

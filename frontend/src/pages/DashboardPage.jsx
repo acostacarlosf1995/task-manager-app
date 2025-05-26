@@ -1,8 +1,14 @@
 import React, {useEffect, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {useNavigate} from 'react-router-dom';
-import {logout, reset as resetAuthStatus} from '../../src/features/auth/authSlice.js'; // Corregido: ruta a authSlice
-import {createProject, getProjects, resetProjectStatus, updateProject} from '../features/projects/projectSlice.js';
+import {logout, reset as resetAuthStatus} from '../../src/features/auth/authSlice.js';
+import {
+    createProject,
+    deleteProject,
+    getProjects,
+    resetProjectStatus,
+    updateProject
+} from '../features/projects/projectSlice.js';
 
 import {
     Box,
@@ -19,12 +25,18 @@ import {
     Modal,
     Fab,
     Stack,
-    IconButton
+    IconButton,
+    DialogActions,
+    DialogContentText,
+    DialogContent,
+    DialogTitle,
+    Dialog
 } from '@mui/material';
 
 import {
     Add as AddIcon,
-    Edit as EditIcon
+    Edit as EditIcon,
+    Delete as DeleteIcon
 } from '@mui/icons-material';
 
 const modalStyle = {
@@ -43,12 +55,18 @@ const DashboardPage = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
+    // Estado para crear un nuevo proyecto
     const [openCreateProjectModal, setOpenCreateProjectModal] = useState(false);
     const [newProjectData, setNewProjectData] = useState({name: '', description: ''});
 
+    // Estado para editar un proyecto existente
     const [openEditProjectModal, setOpenEditProjectModal] = useState(false);
     const [editingProject, setEditingProject] = useState(null);
     const [editProjectData, setEditProjectData] = useState({name: '', description: ''});
+
+    // Estado para confirmar la eliminación de un proyecto
+    const [openDeleteConfirm, setOpenDeleteConfirm] = useState(false);
+    const [projectToDelete, setProjectToDelete] = useState(null);
 
     const {user, isAuthenticated} = useSelector((state) => state.auth);
 
@@ -67,15 +85,12 @@ const DashboardPage = () => {
     }, [isAuthenticated, dispatch]);
 
     useEffect(() => {
-        if (isSuccessProjects && messageProjects && (messageProjects.includes('created') || messageProjects.includes('updated') || messageProjects.includes('deleted'))) {
-            if (openCreateProjectModal) {
-                handleCloseCreateProjectModal();
-            }
-            if (openEditProjectModal) {
-                handleCloseEditProjectModal();
-            }
+        if (isSuccessProjects && messageProjects && (messageProjects.includes('created') || messageProjects.includes('updated') || messageProjects.includes('deleted successfully'))) { // Ajustar mensaje para 'deleted'
+            if (openCreateProjectModal) handleCloseCreateProjectModal();
+            if (openEditProjectModal) handleCloseEditProjectModal();
+            if (openDeleteConfirm) handleCloseDeleteConfirm();
         }
-    }, [isSuccessProjects, messageProjects, openCreateProjectModal, openEditProjectModal, dispatch]);
+    }, [isSuccessProjects, messageProjects, openCreateProjectModal, openEditProjectModal, openDeleteConfirm, dispatch]);
 
     const handleLogout = () => {
         dispatch(logout());
@@ -129,6 +144,24 @@ const DashboardPage = () => {
         }
     };
 
+    const handleOpenDeleteConfirm = (project) => {
+        dispatch(resetProjectStatus());
+        setProjectToDelete(project);
+        setOpenDeleteConfirm(true);
+    };
+
+    const handleCloseDeleteConfirm = () => {
+        setOpenDeleteConfirm(false);
+        setProjectToDelete(null);
+    };
+
+    const handleConfirmDeleteProject = () => {
+        if (projectToDelete) {
+            dispatch(deleteProject(projectToDelete._id));
+        }
+        setOpenDeleteConfirm(false);
+    };
+
     const isFormValidationError = messageProjects &&
         (messageProjects.toLowerCase().includes('mandatory') ||
             messageProjects.toLowerCase().includes('invalid id') ||
@@ -177,11 +210,17 @@ const DashboardPage = () => {
                     sx={{mt: 2, alignSelf: 'center'}}/>}
 
                 {/* Alert General: Se muestra si hay un error, si los modales están cerrados, y si el error NO es un error de validación de formulario típico */}
-                {isErrorProjects && messageProjects && !openCreateProjectModal && !openEditProjectModal && !isFormValidationError && (
-                    <Alert severity="error" sx={{width: '100%', mt: 2}} onClose={() => dispatch(resetProjectStatus())}>
-                        {messageProjects}
-                    </Alert>
-                )}
+                {isErrorProjects && messageProjects && !openCreateProjectModal && !openEditProjectModal && !openDeleteConfirm &&
+                    !messageProjects.toLowerCase().includes('mandatory') &&
+                    !messageProjects.toLowerCase().includes('invalid id') &&
+                    !messageProjects.toLowerCase().includes('must be at least') &&
+                    (
+                        <Alert severity="error" sx={{width: '100%', mt: 2}}
+                               onClose={() => dispatch(resetProjectStatus())}>
+                            {messageProjects}
+                        </Alert>
+                    )
+                }
 
                 {!isLoadingProjects && !isErrorProjects && projects.length === 0 && (
                     <Typography sx={{mt: 2, textAlign: 'center'}}>You don't have any projects yet. Click the '+' to
@@ -195,10 +234,16 @@ const DashboardPage = () => {
                                 <ListItem
                                     alignItems="flex-start"
                                     secondaryAction={
-                                        <IconButton edge="end" aria-label="edit"
-                                                    onClick={() => handleOpenEditProjectModal(project)}>
-                                            <EditIcon/>
-                                        </IconButton>
+                                        <Stack direction="row" spacing={1}> {/* Stack para poner botones juntos */}
+                                            <IconButton edge="end" aria-label="edit"
+                                                        onClick={() => handleOpenEditProjectModal(project)}>
+                                                <EditIcon/>
+                                            </IconButton>
+                                            <IconButton edge="end" aria-label="delete"
+                                                        onClick={() => handleOpenDeleteConfirm(project)}>
+                                                <DeleteIcon/>
+                                            </IconButton>
+                                        </Stack>
                                     }
                                 >
                                     <ListItemText
@@ -328,6 +373,41 @@ const DashboardPage = () => {
                             </Box>
                         </Box>
                     </Modal>
+                )}
+
+                {projectToDelete && (
+                    <Dialog
+                        open={openDeleteConfirm}
+                        onClose={handleCloseDeleteConfirm}
+                        aria-labelledby="alert-dialog-title"
+                        aria-describedby="alert-dialog-description"
+                    >
+                        <DialogTitle id="alert-dialog-title">
+                            {"Confirm Delete Project"}
+                        </DialogTitle>
+                        <DialogContent>
+                            <DialogContentText id="alert-dialog-description">
+                                Are you sure you want to delete the project "{projectToDelete.name}"?
+                                All associated tasks will also be deleted. This action cannot be undone.
+                            </DialogContentText>
+                            {isLoadingProjects &&
+                                <CircularProgress size={24} sx={{display: 'block', margin: '10px auto'}}/>}
+                            {isErrorProjects && messageProjects && openDeleteConfirm && (
+                                <Alert severity="error" sx={{width: '100%', mt: 2}}>
+                                    {messageProjects}
+                                </Alert>
+                            )}
+                        </DialogContent>
+                        <DialogActions>
+                            <Button onClick={handleCloseDeleteConfirm} color="inherit" disabled={isLoadingProjects}>
+                                Cancel
+                            </Button>
+                            <Button onClick={handleConfirmDeleteProject} color="error" variant="contained" autoFocus
+                                    disabled={isLoadingProjects}>
+                                {isLoadingProjects ? <CircularProgress size={20} color="inherit"/> : 'Delete'}
+                            </Button>
+                        </DialogActions>
+                    </Dialog>
                 )}
             </Box>
         </Container>
