@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
-import {useNavigate} from 'react-router-dom';
+import {useNavigate, Link as RouterLink} from 'react-router-dom';
 import {logout, reset as resetAuthStatus} from '../../src/features/auth/authSlice.js';
 import {
     createProject,
@@ -162,14 +162,6 @@ const DashboardPage = () => {
         setOpenDeleteConfirm(false);
     };
 
-    const isFormValidationError = messageProjects &&
-        (messageProjects.toLowerCase().includes('mandatory') ||
-            messageProjects.toLowerCase().includes('invalid id') ||
-            messageProjects.toLowerCase().includes('must be at least') ||
-            messageProjects.toLowerCase().includes('obligatorio') ||
-            messageProjects.toLowerCase().includes('válido'));
-
-
     return (
         <Container maxWidth="lg">
             <Box
@@ -233,14 +225,23 @@ const DashboardPage = () => {
                             <React.Fragment key={project._id}>
                                 <ListItem
                                     alignItems="flex-start"
+                                    button="true"
+                                    component={RouterLink}
+                                    to={`/projects/${project._id}`}
                                     secondaryAction={
-                                        <Stack direction="row" spacing={1}> {/* Stack para poner botones juntos */}
-                                            <IconButton edge="end" aria-label="edit"
-                                                        onClick={() => handleOpenEditProjectModal(project)}>
+                                        <Stack direction="row" spacing={1}>
+                                            <IconButton edge="end" aria-label="edit" onClick={(e) => {
+                                                e.stopPropagation();
+                                                e.preventDefault();
+                                                handleOpenEditProjectModal(project);
+                                            }}>
                                                 <EditIcon/>
                                             </IconButton>
-                                            <IconButton edge="end" aria-label="delete"
-                                                        onClick={() => handleOpenDeleteConfirm(project)}>
+                                            <IconButton edge="end" aria-label="delete" onClick={(e) => {
+                                                e.stopPropagation();
+                                                e.preventDefault();
+                                                handleOpenDeleteConfirm(project);
+                                            }}>
                                                 <DeleteIcon/>
                                             </IconButton>
                                         </Stack>
