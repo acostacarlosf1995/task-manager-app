@@ -6,8 +6,6 @@ const ProtectedRoute = () => {
     const {isAuthenticated, isLoading} = useSelector((state) => state.auth);
     const location = useLocation();
 
-    // console.log('[ProtectedRoute] isAuthenticated:', isAuthenticated, 'isLoading:', isLoading);
-
     if (isLoading) {
         return <div>Loading authentication status...</div>;
     }

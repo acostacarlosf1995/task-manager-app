@@ -13,21 +13,25 @@ const {
 
 const taskValidationRules = [
     body('title')
+        .optional()
         .trim()
-        .notEmpty().withMessage('Title is mandatory.')
-        .isLength({min: 3}).withMessage('Title must be at least 3 characters long.'),
-    body('projectId')
-        .not().isEmpty().withMessage('Project ID is mandatory.')
-        .isMongoId().withMessage('Invalid project ID.'),
+        .not().isEmpty().withMessage('Title is mandatory.')
+        .isLength({min: 3}).withMessage('Title must be at least 3 characters.'),
     body('description')
         .optional()
         .trim(),
     body('status')
         .optional()
-        .isIn(['pending', 'in-progress', 'completed']).withMessage('Invalid status. Allowed values: pending, in-progress, completed.'),
+        .isIn(['pending', 'in-progress', 'completed']).withMessage('Invalid status. Allowed: pending, in-progress, completed.'),
     body('dueDate')
-        .optional()
+        .optional({checkFalsy: true})
         .isISO8601().toDate().withMessage('Due date must be a valid date (YYYY-MM-DD).'),
+    body('projectId')
+        .if((value, {req}) => req.method === 'POST')
+        .not().isEmpty().withMessage('Project ID is mandatory for new tasks.')
+        .isMongoId().withMessage('Project ID must be a valid Mongo ID for new tasks.')
+        .optional()
+        .isMongoId().withMessage('If provided, Project ID must be a valid Mongo ID.')
 ];
 
 const mongoIdValidationRule = [

@@ -6,6 +6,7 @@ import RegisterPage from './pages/Auth/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/layout/Navbar';
+import ProjectDetailPage from "./pages/ProjectDetailPage.jsx";
 
 function App() {
     return (
@@ -23,6 +24,7 @@ function App() {
 
                     <Route element={<ProtectedRoute/>}>
                         <Route path="/dashboard" element={<DashboardPage/>}/>
+                        <Route path="/projects/:projectId" element={<ProjectDetailPage />} />
                     </Route>
 
                     <Route path="/" element={<Navigate to="/login" replace/>}/>
