@@ -19,9 +19,31 @@ const createTask = async (taskData, token) => {
     return response.data;
 };
 
+const updateTask = async (taskId, taskData, token) => {
+    const config = {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    };
+    const response = await axios.put(API_TASKS_URL + taskId, taskData, config);
+    return response.data;
+};
+
+const deleteTask = async (taskId, token) => {
+    const config = {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    };
+    const response = await axios.delete(API_TASKS_URL + taskId, config);
+    return response.data;
+};
+
 const taskService = {
     getTasksByProject,
     createTask,
+    updateTask,
+    deleteTask,
 };
 
 export default taskService;
