@@ -13,7 +13,7 @@ import {store} from './app/store';
 const defaultTheme = createTheme();
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-    <React.StrictMode>
+    // <React.StrictMode>
         <Provider store={store}>
             <BrowserRouter>
                 <ThemeProvider theme={defaultTheme}>
@@ -22,5 +22,5 @@ ReactDOM.createRoot(document.getElementById('root')).render(
                 </ThemeProvider>
             </BrowserRouter>
         </Provider>
-    </React.StrictMode>
+    // </React.StrictMode>
 );
