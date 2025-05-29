@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {useParams, Link as RouterLink} from 'react-router-dom';
 import {useDispatch, useSelector} from 'react-redux';
+import { useTheme } from '@mui/material/styles';
 
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
@@ -55,6 +56,7 @@ const modalStyle = {
 const ProjectDetailPage = () => {
     const {projectId} = useParams();
     const dispatch = useDispatch();
+    const theme = useTheme();
 
     const [openCreateTaskModal, setOpenCreateTaskModal] = useState(false);
     const [newTaskData, setNewTaskData] = useState({
@@ -90,28 +92,23 @@ const ProjectDetailPage = () => {
     };
 
     const onDragEnd = (result) => {
-        console.log('onDragEnd CALLED. Result:', JSON.stringify(result, null, 2));
         const {source, destination, draggableId} = result;
 
         if (!destination) {
-            console.log('Destination is NULL or UNDEFINED. Aborting.');
+            // console.log('Destination is NULL or UNDEFINED. Aborting.');
             return;
         }
         if (!source) {
-            console.log('Source is NULL or UNDEFINED. Aborting.');
+            // console.log('Source is NULL or UNDEFINED. Aborting.');
             return;
         }
         if (!draggableId) {
-            console.log('DraggableId is NULL or UNDEFINED. Aborting.');
+            // console.log('DraggableId is NULL or UNDEFINED. Aborting.');
             return;
         }
 
-        console.log(`Source Droppable ID: ${source.droppableId}, Index: ${source.index}`);
-        console.log(`Destination Droppable ID: ${destination.droppableId}, Index: ${destination.index}`);
-        console.log(`Draggable ID: ${draggableId}`);
-
         if (destination.droppableId === source.droppableId && destination.index === source.index) {
-            console.log('Dropped in the same place.');
+            // console.log('Dropped in the same place.');
             return;
         }
 
@@ -119,7 +116,6 @@ const ProjectDetailPage = () => {
         const newStatus = destination.droppableId;
 
         if (taskToUpdate && taskToUpdate.status !== newStatus) {
-            console.log(`Attempting to update task ${draggableId} from status ${taskToUpdate.status} to ${newStatus}`);
             const updatedTaskData = {
                 title: taskToUpdate.title,
                 description: taskToUpdate.description,
@@ -127,10 +123,6 @@ const ProjectDetailPage = () => {
                 status: newStatus,
             };
             dispatch(updateTask({taskId: draggableId, taskData: updatedTaskData}));
-        } else if (taskToUpdate && taskToUpdate.status === newStatus) {
-            console.log('Task moved within the same status column.');
-        } else if (!taskToUpdate) {
-            console.warn(`Dragged task with id ${draggableId} not found in current tasks list. Current tasks:`, tasks.map(t => t._id));
         }
     };
 
@@ -249,85 +241,82 @@ const ProjectDetailPage = () => {
                 )}
 
                 {!isLoadingTasks && !isErrorTasks && (
-                <DragDropContext onDragEnd={onDragEnd}>
-                    <Stack direction="row" spacing={2} sx={{mt: 3, overflowX: 'auto', pb: 2}}>
-                        {statuses.map((statusKey) => {
-                            const columnTasks = tasks.filter(task => task.status === statusKey);
-                            return (
-                                <Droppable droppableId={statusKey} key={statusKey}>
-                                    {(provided, snapshot) => (
-                                        <Paper
-                                            elevation={2}
-                                            sx={{
-                                                p: 2,
-                                                width: 300,
-                                                minWidth: 280,
-                                                maxHeight: '70vh',
-                                                overflowY: 'auto',
-                                                bgcolor: snapshot.isDraggingOver ? 'grey.200' : 'grey.50',
-                                            }}
-                                            ref={provided.innerRef}
-                                            {...provided.droppableProps}
-                                        >
-                                            <Typography variant="h6" gutterBottom sx={{textAlign: 'center', mb: 2}}>
-                                                {statusTitles[statusKey]} ({columnTasks.length})
-                                            </Typography>
-                                            {columnTasks.map((task, index) => (
-                                                <Draggable draggableId={task._id} index={index} key={task._id}>
-                                                    {(providedDraggable, snapshotDraggable) => (
-                                                        <Paper
-                                                            elevation={snapshotDraggable.isDragging ? 4 : 1}
-                                                            sx={{
-                                                                p: 1.5, mb: 1.5, userSelect: 'none',
-                                                                backgroundColor: snapshotDraggable.isDragging ? 'lightblue' : 'white',
-                                                            }}
-                                                            ref={providedDraggable.innerRef}
-                                                            {...providedDraggable.draggableProps}
-                                                            {...providedDraggable.dragHandleProps}
-                                                        >
-                                                            <Stack direction="row" justifyContent="space-between"
-                                                                   alignItems="center">
-                                                                <Typography variant="subtitle1"
-                                                                            sx={{fontWeight: 'bold'}}>{task.title}</Typography>
-                                                                <Stack direction="row" spacing={0}>
-                                                                    <IconButton edge="end" aria-label="edit task"
-                                                                                onClick={() => handleOpenEditTaskModal(task)}
-                                                                                size="small">
-                                                                        <EditIcon fontSize="small"/>
-                                                                    </IconButton>
-                                                                    <IconButton edge="end" aria-label="delete task"
-                                                                                onClick={() => handleOpenDeleteTaskConfirm(task)}
-                                                                                size="small" color="error">
-                                                                        <DeleteIcon fontSize="small"/>
-                                                                    </IconButton>
-                                                                </Stack>
-                                                            </Stack>
-                                                            {task.description && <Typography variant="body2"
-                                                                                             sx={{my: 1}}>{task.description}</Typography>}
-                                                            {task.dueDate && (
-                                                                <Typography variant="caption" color="text.secondary"
-                                                                            display="block">
-                                                                    Due: {new Date(task.dueDate).toLocaleDateString('es-MX', {timeZone: 'UTC'})}
-                                                                </Typography>
-                                                            )}
-                                                        </Paper>
-                                                    )}
-                                                </Draggable>
-                                            ))}
-                                            {provided.placeholder}
-                                            {columnTasks.length === 0 && !isLoadingTasks && (
-                                                <Typography variant="body2" color="textSecondary"
-                                                            sx={{textAlign: 'center', fontStyle: 'italic', mt: 2}}>
-                                                    No tasks in this state.
+                    <DragDropContext onDragEnd={onDragEnd}>
+                        <Stack direction="row" spacing={2}
+                               sx={{mt: 3, overflowX: 'auto', pb: 2}}>
+                            {statuses.map((statusKey) => {
+                                const columnTasks = tasks.filter(task => task.status === statusKey);
+                                return (
+                                    <Droppable droppableId={statusKey} key={statusKey}>
+                                        {(provided, snapshot) => (
+                                            <Paper
+                                                elevation={2}
+                                                sx={{
+                                                    p: 2,
+                                                    width: 300,
+                                                    minWidth: 280,
+                                                    maxHeight: '70vh',
+                                                    overflowY: 'auto',
+                                                    bgcolor: snapshot.isDraggingOver ? 'grey.200' : (theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50'),
+                                                }}
+                                                ref={provided.innerRef}
+                                                {...provided.droppableProps}
+                                            >
+                                                <Typography variant="h6" gutterBottom sx={{textAlign: 'center', mb: 2}}>
+                                                    {statusTitles[statusKey]} ({columnTasks.length})
                                                 </Typography>
-                                            )}
-                                        </Paper>
-                                    )}
-                                </Droppable>
-                            );
-                        })}
-                    </Stack>
-                </DragDropContext>
+                                                {columnTasks.map((task, index) => (
+                                                    <Draggable draggableId={task._id} index={index} key={task._id}>
+                                                        {(providedDraggable, snapshotDraggable) => (
+                                                            <Paper
+                                                                elevation={snapshotDraggable.isDragging ? 8 : 2}
+                                                                sx={{
+                                                                    p: 1.5, mb: 1.5, userSelect: 'none',
+                                                                    backgroundColor: snapshotDraggable.isDragging
+                                                                        ? (theme.palette.mode === 'dark' ? theme.palette.action.selected : 'lightblue')
+                                                                        : theme.palette.background.paper,
+                                                                }}
+                                                                ref={providedDraggable.innerRef}
+                                                                {...providedDraggable.draggableProps}
+                                                                {...providedDraggable.dragHandleProps}
+                                                            >
+                                                                <Stack direction="row" justifyContent="space-between"
+                                                                       alignItems="center">
+                                                                    <Typography variant="subtitle1"
+                                                                                sx={{fontWeight: 'bold'}}>{task.title}</Typography>
+                                                                    <Stack direction="row" spacing={0}>
+                                                                        <IconButton edge="end" aria-label="edit task"
+                                                                                    onClick={() => handleOpenEditTaskModal(task)}
+                                                                                    size="small">
+                                                                            <EditIcon fontSize="small"/>
+                                                                        </IconButton>
+                                                                        <IconButton edge="end" aria-label="delete task"
+                                                                                    onClick={() => handleOpenDeleteTaskConfirm(task)}
+                                                                                    size="small" color="error">
+                                                                            <DeleteIcon fontSize="small"/>
+                                                                        </IconButton>
+                                                                    </Stack>
+                                                                </Stack>
+                                                                {task.description && <Typography variant="body2"
+                                                                                                 sx={{my: 1}}>{task.description}</Typography>}
+                                                                {task.dueDate && (
+                                                                    <Typography variant="caption" color="text.secondary"
+                                                                                display="block">
+                                                                        Due: {new Date(task.dueDate).toLocaleDateString('es-MX', {timeZone: 'UTC'})}
+                                                                    </Typography>
+                                                                )}
+                                                            </Paper>
+                                                        )}
+                                                    </Draggable>
+                                                ))}
+                                                {provided.placeholder}
+                                            </Paper>
+                                        )}
+                                    </Droppable>
+                                );
+                            })}
+                        </Stack>
+                    </DragDropContext>
                 )}
 
                 {!isLoadingTasks && !isErrorTasks && tasks.length === 0 && (
