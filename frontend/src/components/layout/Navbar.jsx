@@ -12,11 +12,16 @@ import IconButton from '@mui/material/IconButton';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
+import {useThemeMode} from "../../contexts/ThemeContext.jsx";
+import Brightness4Icon from '@mui/icons-material/Brightness4';
+import Brightness7Icon from '@mui/icons-material/Brightness7';
 
 const Navbar = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const {user, isAuthenticated} = useSelector((state) => state.auth);
+
+    const {mode, toggleColorMode} = useThemeMode();
 
     // Mmenú desplegable del usuario
     const [anchorEl, setAnchorEl] = React.useState(null);
@@ -90,10 +95,14 @@ const Navbar = () => {
         <Box sx={{flexGrow: 1}}>
             <AppBar position="static">
                 <Toolbar>
-                    <Typography variant="h6" component={RouterLink} to="/"
-                                sx={{flexGrow: 1, color: 'inherit', textDecoration: 'none'}}>
+                    <Typography variant="h6" component={RouterLink} to="/" sx={{flexGrow: 1, /* ... */}}>
                         Task Manager Pro
                     </Typography>
+
+                    <IconButton sx={{ml: 1}} onClick={toggleColorMode} color="inherit">
+                        {mode === 'dark' ? <Brightness7Icon/> : <Brightness4Icon/>}
+                    </IconButton>
+
                     {isAuthenticated ? authLinks : guestLinks}
                 </Toolbar>
             </AppBar>
