@@ -1,5 +1,6 @@
 import {createSlice, createAsyncThunk} from '@reduxjs/toolkit';
 import projectService from './projectService';
+import { showSnackbar } from '../ui/uiSlice';
 
 const initialState = {
     projects: [],
@@ -15,12 +16,15 @@ export const createProject = createAsyncThunk(
     async (projectData, thunkAPI) => {
         try {
             const token = thunkAPI.getState().auth.token;
-            return await projectService.createProject(projectData, token);
+            const newProject = await projectService.createProject(projectData, token);
+            thunkAPI.dispatch(showSnackbar({ message: 'Project created successfully!', severity: 'success' }));
+            return newProject;
         } catch (error) {
             const message =
                 (error.response && error.response.data && (error.response.data.message || (error.response.data.errors && error.response.data.errors[0].msg))) ||
                 error.message ||
                 error.toString();
+            thunkAPI.dispatch(showSnackbar({ message, severity: 'error' }));
             return thunkAPI.rejectWithValue(message);
         }
     }
@@ -28,7 +32,7 @@ export const createProject = createAsyncThunk(
 
 export const getProjects = createAsyncThunk(
     'projects/getAll',
-    async (_, thunkAPI) => { // No necesita argumentos, el token se obtiene del estado
+    async (_, thunkAPI) => {
         try {
             const token = thunkAPI.getState().auth.token;
             return await projectService.getProjects(token);
@@ -44,15 +48,18 @@ export const getProjects = createAsyncThunk(
 
 export const updateProject = createAsyncThunk(
     'projects/update',
-    async ({projectId, projectData}, thunkAPI) => { // Recibe un objeto con projectId y projectData
+    async ({ projectId, projectData }, thunkAPI) => {
         try {
             const token = thunkAPI.getState().auth.token;
-            return await projectService.updateProject(projectId, projectData, token);
+            const updatedProject = await projectService.updateProject(projectId, projectData, token);
+            thunkAPI.dispatch(showSnackbar({ message: 'Project updated successfully!', severity: 'success' }));
+            return updatedProject;
         } catch (error) {
             const message =
                 (error.response && error.response.data && (error.response.data.message || (error.response.data.errors && error.response.data.errors[0].msg))) ||
                 error.message ||
                 error.toString();
+            thunkAPI.dispatch(showSnackbar({ message, severity: 'error' }));
             return thunkAPI.rejectWithValue(message);
         }
     }
@@ -63,12 +70,15 @@ export const deleteProject = createAsyncThunk(
     async (projectId, thunkAPI) => {
         try {
             const token = thunkAPI.getState().auth.token;
-            return await projectService.deleteProject(projectId, token);
+            const responseData = await projectService.deleteProject(projectId, token);
+            thunkAPI.dispatch(showSnackbar({ message: responseData.message || 'Project deleted successfully!', severity: 'success' }));
+            return responseData;
         } catch (error) {
             const message =
                 (error.response && error.response.data && (error.response.data.message || (error.response.data.errors && error.response.data.errors[0].msg))) ||
                 error.message ||
                 error.toString();
+            thunkAPI.dispatch(showSnackbar({ message, severity: 'error' }));
             return thunkAPI.rejectWithValue(message);
         }
     }
@@ -106,7 +116,6 @@ export const projectSlice = createSlice({
             })
             .addCase(getProjects.fulfilled, (state, action) => {
                 state.isLoading = false;
-                // state.isSuccess = true;
                 state.projects = action.payload;
             })
             .addCase(getProjects.rejected, (state, action) => {
@@ -132,14 +141,12 @@ export const projectSlice = createSlice({
                 state.isError = true;
                 state.message = action.payload;
             })
-
             .addCase(deleteProject.pending, (state) => {
                 state.isLoading = true;
             })
             .addCase(deleteProject.fulfilled, (state, action) => {
                 state.isLoading = false;
                 state.isSuccess = true;
-                // Eliminar el proyecto del array 'projects'
                 state.projects = state.projects.filter(
                     (project) => project._id !== action.payload.id
                 );

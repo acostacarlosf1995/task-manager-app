@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {useParams, Link as RouterLink} from 'react-router-dom';
 import {useDispatch, useSelector} from 'react-redux';
-import { useTheme } from '@mui/material/styles';
+import {useTheme} from '@mui/material/styles';
 
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
@@ -236,9 +236,9 @@ const ProjectDetailPage = () => {
                     <CircularProgress sx={{display: 'block', margin: '20px auto'}}/>
                 }
 
-                {isErrorTasks && messageTasks && !openCreateTaskModal && !openEditTaskModal && !openDeleteTaskConfirm && (
-                    <Alert severity="error" onClose={() => dispatch(resetTaskStatus())}>{messageTasks}</Alert>
-                )}
+                {/*{isErrorTasks && messageTasks && !openCreateTaskModal && !openEditTaskModal && !openDeleteTaskConfirm && (*/}
+                {/*    <Alert severity="error" onClose={() => dispatch(resetTaskStatus())}>{messageTasks}</Alert>*/}
+                {/*)}*/}
 
                 {!isLoadingTasks && !isErrorTasks && (
                     <DragDropContext onDragEnd={onDragEnd}>
@@ -350,9 +350,7 @@ const ProjectDetailPage = () => {
                                    name="dueDate" type="date" value={newTaskData.dueDate} onChange={handleNewTaskChange}
                                    InputLabelProps={{shrink: true}}/>
                         {isLoadingTasks && <CircularProgress size={24} sx={{display: 'block', margin: '10px auto'}}/>}
-                        {isErrorTasks && messageTasks && openCreateTaskModal && (
-                            <Alert severity="error" sx={{width: '100%', mt: 1}}
-                                   onClose={() => dispatch(resetTaskStatus())}>{messageTasks}</Alert>)}
+
                         <Stack direction="row" spacing={2} sx={{mt: 3, justifyContent: 'flex-end'}}>
                             <Button onClick={handleCloseCreateTaskModal} color="inherit"
                                     disabled={isLoadingTasks}>Cancel</Button>
@@ -387,12 +385,12 @@ const ProjectDetailPage = () => {
                             </FormControl>
                             <TextField margin="normal" fullWidth id="edit-task-dueDate" label="Due Date (YYYY-MM-DD)"
                                        name="dueDate" type="date" value={editTaskData.dueDate}
-                                       onChange={handleEditTaskChange} InputLabelProps={{shrink: true}}/>
+                                       onChange={handleEditTaskChange} InputLabelProps={{shrink: true}}
+                            />
                             {isLoadingTasks &&
-                                <CircularProgress size={24} sx={{display: 'block', margin: '10px auto'}}/>}
-                            {isErrorTasks && messageTasks && openEditTaskModal && (
-                                <Alert severity="error" sx={{width: '100%', mt: 1}}
-                                       onClose={() => dispatch(resetTaskStatus())}>{messageTasks}</Alert>)}
+                                <CircularProgress size={24} sx={{display: 'block', margin: '10px auto'}}/>
+                            }
+
                             <Stack direction="row" spacing={2} sx={{mt: 3, justifyContent: 'flex-end'}}>
                                 <Button onClick={handleCloseEditTaskModal} color="inherit"
                                         disabled={isLoadingTasks}>Cancel</Button>
@@ -408,12 +406,11 @@ const ProjectDetailPage = () => {
                 <Dialog open={openDeleteTaskConfirm} onClose={handleCloseDeleteTaskConfirm}
                         aria-labelledby="delete-task-dialog-title">
                     <DialogTitle id="delete-task-dialog-title">{"Confirm Delete Task"}</DialogTitle>
-                    <DialogContent><DialogContentText>Are you sure you want to delete the task "{taskToDelete.title}"?
-                        This action cannot be undone.</DialogContentText>
+                    <DialogContent>
+                        <DialogContentText>
+                            Are you sure you want to delete the task "{taskToDelete.title}"? This action cannot be undone.
+                        </DialogContentText>
                         {isLoadingTasks && <CircularProgress size={24} sx={{display: 'block', margin: '10px auto'}}/>}
-                        {isErrorTasks && messageTasks && openDeleteTaskConfirm && (
-                            <Alert severity="error" sx={{width: '100%', mt: 2}}
-                                   onClose={() => dispatch(resetTaskStatus())}>{messageTasks}</Alert>)}
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={handleCloseDeleteTaskConfirm} color="inherit"

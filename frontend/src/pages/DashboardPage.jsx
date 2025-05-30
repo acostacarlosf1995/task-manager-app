@@ -205,13 +205,7 @@ const DashboardPage = () => {
                 {isErrorProjects && messageProjects && !openCreateProjectModal && !openEditProjectModal && !openDeleteConfirm &&
                     !messageProjects.toLowerCase().includes('mandatory') &&
                     !messageProjects.toLowerCase().includes('invalid id') &&
-                    !messageProjects.toLowerCase().includes('must be at least') &&
-                    (
-                        <Alert severity="error" sx={{width: '100%', mt: 2}}
-                               onClose={() => dispatch(resetProjectStatus())}>
-                            {messageProjects}
-                        </Alert>
-                    )
+                    !messageProjects.toLowerCase().includes('must be at least')
                 }
 
                 {!isLoadingProjects && !isErrorProjects && projects.length === 0 && (
@@ -299,13 +293,8 @@ const DashboardPage = () => {
                                 onChange={handleNewProjectChange}
                             />
                             {isLoadingProjects &&
-                                <CircularProgress size={24} sx={{display: 'block', margin: '10px auto'}}/>}
-                            {openCreateProjectModal && isErrorProjects && messageProjects && (
-                                <Alert severity="error" sx={{width: '100%', mt: 1}}
-                                       onClose={() => dispatch(resetProjectStatus())}>
-                                    {messageProjects}
-                                </Alert>
-                            )}
+                                <CircularProgress size={24} sx={{display: 'block', margin: '10px auto'}}/>
+                            }
                             <Stack direction="row" spacing={2} sx={{mt: 3, justifyContent: 'flex-end'}}>
                                 <Button onClick={handleCloseCreateProjectModal} color="inherit"
                                         disabled={isLoadingProjects}>
@@ -354,13 +343,8 @@ const DashboardPage = () => {
                                     onChange={handleEditProjectChange}
                                 />
                                 {isLoadingProjects &&
-                                    <CircularProgress size={24} sx={{display: 'block', margin: '10px auto'}}/>}
-                                {openEditProjectModal && isErrorProjects && messageProjects && (
-                                    <Alert severity="error" sx={{width: '100%', mt: 1}}
-                                           onClose={() => dispatch(resetProjectStatus())}>
-                                        {messageProjects}
-                                    </Alert>
-                                )}
+                                    <CircularProgress size={24} sx={{display: 'block', margin: '10px auto'}}/>
+                                }
                                 <Stack direction="row" spacing={2} sx={{mt: 3, justifyContent: 'flex-end'}}>
                                     <Button onClick={handleCloseEditProjectModal} color="inherit"
                                             disabled={isLoadingProjects}>
@@ -392,12 +376,8 @@ const DashboardPage = () => {
                                 All associated tasks will also be deleted. This action cannot be undone.
                             </DialogContentText>
                             {isLoadingProjects &&
-                                <CircularProgress size={24} sx={{display: 'block', margin: '10px auto'}}/>}
-                            {isErrorProjects && messageProjects && openDeleteConfirm && (
-                                <Alert severity="error" sx={{width: '100%', mt: 2}}>
-                                    {messageProjects}
-                                </Alert>
-                            )}
+                                <CircularProgress size={24} sx={{display: 'block', margin: '10px auto'}}/>
+                            }
                         </DialogContent>
                         <DialogActions>
                             <Button onClick={handleCloseDeleteConfirm} color="inherit" disabled={isLoadingProjects}>

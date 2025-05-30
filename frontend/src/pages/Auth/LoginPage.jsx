@@ -76,12 +76,6 @@ const LoginPage = () => {
                     Sign In
                 </Typography>
 
-                {isError && message && typeof message === 'string' && (
-                    <Alert severity="error" sx={{width: '100%', mt: 2}} onClose={() => dispatch(resetAuthStatus())}>
-                        {message}
-                    </Alert>
-                )}
-
                 <Box component="form" onSubmit={onSubmit} noValidate sx={{mt: 1}}>
                     <TextField
                         margin="normal"
