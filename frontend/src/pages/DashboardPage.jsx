@@ -1,7 +1,7 @@
-import React, {useEffect, useState} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
-import {useNavigate, Link as RouterLink} from 'react-router-dom';
-import {logout, reset as resetAuthStatus} from '../../src/features/auth/authSlice.js';
+import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import { logout, reset as resetAuthStatus } from '../../src/features/auth/authSlice.js';
 import {
     createProject,
     deleteProject,
@@ -46,7 +46,7 @@ const modalStyle = {
     transform: 'translate(-50%, -50%)',
     width: 400,
     bgcolor: 'background.paper',
-    border: '2px solid #000',
+    borderRadius: '8px',
     boxShadow: 24,
     p: 4,
 };
@@ -55,20 +55,17 @@ const DashboardPage = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    // Estado para crear un nuevo proyecto
     const [openCreateProjectModal, setOpenCreateProjectModal] = useState(false);
-    const [newProjectData, setNewProjectData] = useState({name: '', description: ''});
+    const [newProjectData, setNewProjectData] = useState({ name: '', description: '' });
 
-    // Estado para editar un proyecto existente
     const [openEditProjectModal, setOpenEditProjectModal] = useState(false);
     const [editingProject, setEditingProject] = useState(null);
-    const [editProjectData, setEditProjectData] = useState({name: '', description: ''});
+    const [editProjectData, setEditProjectData] = useState({ name: '', description: '' });
 
-    // Estado para confirmar la eliminación de un proyecto
     const [openDeleteConfirm, setOpenDeleteConfirm] = useState(false);
     const [projectToDelete, setProjectToDelete] = useState(null);
 
-    const {user, isAuthenticated} = useSelector((state) => state.auth);
+    const { user, isAuthenticated } = useSelector((state) => state.auth);
 
     const {
         projects,
@@ -85,12 +82,12 @@ const DashboardPage = () => {
     }, [isAuthenticated, dispatch]);
 
     useEffect(() => {
-        if (isSuccessProjects && messageProjects && (messageProjects.includes('created') || messageProjects.includes('updated') || messageProjects.includes('deleted successfully'))) { // Ajustar mensaje para 'deleted'
+        if (isSuccessProjects && (messageProjects?.includes('created') || messageProjects?.includes('updated') || messageProjects?.includes('deleted successfully'))) {
             if (openCreateProjectModal) handleCloseCreateProjectModal();
             if (openEditProjectModal) handleCloseEditProjectModal();
             if (openDeleteConfirm) handleCloseDeleteConfirm();
         }
-    }, [isSuccessProjects, messageProjects, openCreateProjectModal, openEditProjectModal, openDeleteConfirm, dispatch]);
+    }, [isSuccessProjects, messageProjects, openCreateProjectModal, openEditProjectModal, openDeleteConfirm]);
 
     const handleLogout = () => {
         dispatch(logout());
@@ -101,14 +98,12 @@ const DashboardPage = () => {
 
     const handleOpenCreateProjectModal = () => {
         dispatch(resetProjectStatus());
-        setNewProjectData({name: '', description: ''});
+        setNewProjectData({ name: '', description: '' });
         setOpenCreateProjectModal(true);
     };
 
     const handleCloseCreateProjectModal = () => {
         setOpenCreateProjectModal(false);
-        setNewProjectData({name: '', description: ''});
-        dispatch(resetProjectStatus());
     };
 
     const handleNewProjectChange = (e) => {
@@ -126,21 +121,19 @@ const DashboardPage = () => {
     const handleOpenEditProjectModal = (project) => {
         dispatch(resetProjectStatus());
         setEditingProject(project);
-        setEditProjectData({name: project.name, description: project.description || ''});
+        setEditProjectData({ name: project.name, description: project.description || '' });
         setOpenEditProjectModal(true);
     };
     const handleCloseEditProjectModal = () => {
         setOpenEditProjectModal(false);
         setEditingProject(null);
-        setEditProjectData({name: '', description: ''});
-        dispatch(resetProjectStatus());
     };
-    const handleEditProjectChange = (e) => setEditProjectData({...editProjectData, [e.target.name]: e.target.value});
+    const handleEditProjectChange = (e) => setEditProjectData({ ...editProjectData, [e.target.name]: e.target.value });
 
     const handleEditProjectSubmit = (e) => {
         e.preventDefault();
         if (editingProject) {
-            dispatch(updateProject({projectId: editingProject._id, projectData: editProjectData}));
+            dispatch(updateProject({ projectId: editingProject._id, projectData: editProjectData }));
         }
     };
 
@@ -159,7 +152,6 @@ const DashboardPage = () => {
         if (projectToDelete) {
             dispatch(deleteProject(projectToDelete._id));
         }
-        setOpenDeleteConfirm(false);
     };
 
     return (
@@ -172,54 +164,47 @@ const DashboardPage = () => {
                 }}
             >
                 <Box
-                    sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', mb: 2}}>
+                    sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', mb: 2 }}>
                     <Typography variant="h4" component="h1">
                         Welcome
                         {user && user.name ? `, ${user.name}!` : '!'}
                     </Typography>
-                    <Button
-                        variant="outlined"
-                        color="secondary"
-                        onClick={handleLogout}
-                    >
-                        Logout
-                    </Button>
                 </Box>
 
-                <Divider sx={{width: '100%', mb: 3}}/>
+                <Divider sx={{ width: '100%', mb: 3 }} />
 
                 <Box
-                    sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', mb: 2}}>
+                    sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', mb: 2 }}>
                     <Typography variant="h5" component="h2">
                         Your Projects
                     </Typography>
                     <Fab color="primary" aria-label="add project" onClick={handleOpenCreateProjectModal} size="small">
-                        <AddIcon/>
+                        <AddIcon />
                     </Fab>
                 </Box>
 
                 {isLoadingProjects && projects.length === 0 && <CircularProgress
-                    sx={{mt: 2, alignSelf: 'center'}}/>}
+                    sx={{ mt: 2, alignSelf: 'center' }} />}
 
-                {/* Alert General: Se muestra si hay un error, si los modales están cerrados, y si el error NO es un error de validación de formulario típico */}
-                {isErrorProjects && messageProjects && !openCreateProjectModal && !openEditProjectModal && !openDeleteConfirm &&
-                    !messageProjects.toLowerCase().includes('mandatory') &&
-                    !messageProjects.toLowerCase().includes('invalid id') &&
-                    !messageProjects.toLowerCase().includes('must be at least')
-                }
+                {isErrorProjects && messageProjects && !projects.length && !isLoadingProjects && (
+                    <Alert severity="error" sx={{ width: '100%', mt: 2 }} onClose={() => dispatch(resetProjectStatus())}>
+                        Failed to load projects: {messageProjects}
+                    </Alert>
+                )}
+
 
                 {!isLoadingProjects && !isErrorProjects && projects.length === 0 && (
-                    <Typography sx={{mt: 2, textAlign: 'center'}}>You don't have any projects yet. Click the '+' to
+                    <Typography sx={{ mt: 2, textAlign: 'center' }}>You don't have any projects yet. Click the '+' to
                         create one!</Typography>
                 )}
 
-                {!isLoadingProjects && !isErrorProjects && projects.length > 0 && (
-                    <List sx={{width: '100%', bgcolor: 'background.paper'}}>
+                {!isLoadingProjects && projects.length > 0 && (
+                    <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
                         {projects.map((project) => (
                             <React.Fragment key={project._id}>
                                 <ListItem
                                     alignItems="flex-start"
-                                    button="true"
+                                    button
                                     component={RouterLink}
                                     to={`/projects/${project._id}`}
                                     secondaryAction={
@@ -229,14 +214,14 @@ const DashboardPage = () => {
                                                 e.preventDefault();
                                                 handleOpenEditProjectModal(project);
                                             }}>
-                                                <EditIcon/>
+                                                <EditIcon />
                                             </IconButton>
                                             <IconButton edge="end" aria-label="delete" onClick={(e) => {
                                                 e.stopPropagation();
                                                 e.preventDefault();
                                                 handleOpenDeleteConfirm(project);
                                             }}>
-                                                <DeleteIcon/>
+                                                <DeleteIcon />
                                             </IconButton>
                                         </Stack>
                                     }
@@ -245,7 +230,7 @@ const DashboardPage = () => {
                                         primary={project.name}
                                         secondary={
                                             <>
-                                                <Typography sx={{display: 'inline'}} component="span" variant="body2"
+                                                <Typography sx={{ display: 'inline' }} component="span" variant="body2"
                                                             color="text.primary">
                                                     Created: {new Date(project.createdAt).toLocaleDateString()}
                                                 </Typography>
@@ -254,7 +239,7 @@ const DashboardPage = () => {
                                         }
                                     />
                                 </ListItem>
-                                <Divider variant="inset" component="li"/>
+                                <Divider variant="inset" component="li" />
                             </React.Fragment>
                         ))}
                     </List>
@@ -266,10 +251,10 @@ const DashboardPage = () => {
                     aria-labelledby="create-project-modal-title"
                 >
                     <Box sx={modalStyle}>
-                        <Typography id="create-project-modal-title" variant="h6" component="h2">
+                        <Typography id="create-project-modal-title" variant="h6" component="h2" sx={{ mb: 2 }}>
                             Create New Project
                         </Typography>
-                        <Box component="form" onSubmit={handleCreateProjectSubmit} noValidate sx={{mt: 2}}>
+                        <Box component="form" onSubmit={handleCreateProjectSubmit} noValidate>
                             <TextField
                                 margin="normal"
                                 required
@@ -293,16 +278,22 @@ const DashboardPage = () => {
                                 onChange={handleNewProjectChange}
                             />
                             {isLoadingProjects &&
-                                <CircularProgress size={24} sx={{display: 'block', margin: '10px auto'}}/>
-                            }
-                            <Stack direction="row" spacing={2} sx={{mt: 3, justifyContent: 'flex-end'}}>
+                                <CircularProgress size={24} sx={{ display: 'block', margin: '20px auto 0' }} />}
+                            {openCreateProjectModal && isErrorProjects && messageProjects &&
+                                (messageProjects.toLowerCase().includes('mandatory') || messageProjects.toLowerCase().includes('must be at least')) && (
+                                    <Alert severity="error" sx={{ width: '100%', mt: 2 }}
+                                           onClose={() => dispatch(resetProjectStatus())}>
+                                        {messageProjects}
+                                    </Alert>
+                                )}
+                            <Stack direction="row" spacing={2} sx={{ mt: 3, justifyContent: 'flex-end' }}>
                                 <Button onClick={handleCloseCreateProjectModal} color="inherit"
                                         disabled={isLoadingProjects}>
                                     Cancel
                                 </Button>
                                 <Button type="submit" variant="contained" disabled={isLoadingProjects}>
                                     {isLoadingProjects ?
-                                        <CircularProgress size={20} color="inherit"/> : 'Create Project'}
+                                        <CircularProgress size={20} color="inherit" /> : 'Create Project'}
                                 </Button>
                             </Stack>
                         </Box>
@@ -316,10 +307,10 @@ const DashboardPage = () => {
                         aria-labelledby="edit-project-modal-title"
                     >
                         <Box sx={modalStyle}>
-                            <Typography id="edit-project-modal-title" variant="h6" component="h2">
+                            <Typography id="edit-project-modal-title" variant="h6" component="h2" sx={{ mb: 2 }}>
                                 Edit Project
                             </Typography>
-                            <Box component="form" onSubmit={handleEditProjectSubmit} noValidate sx={{mt: 2}}>
+                            <Box component="form" onSubmit={handleEditProjectSubmit} noValidate>
                                 <TextField
                                     margin="normal"
                                     required
@@ -343,16 +334,22 @@ const DashboardPage = () => {
                                     onChange={handleEditProjectChange}
                                 />
                                 {isLoadingProjects &&
-                                    <CircularProgress size={24} sx={{display: 'block', margin: '10px auto'}}/>
-                                }
-                                <Stack direction="row" spacing={2} sx={{mt: 3, justifyContent: 'flex-end'}}>
+                                    <CircularProgress size={24} sx={{ display: 'block', margin: '20px auto 0' }} />}
+                                {openEditProjectModal && isErrorProjects && messageProjects &&
+                                    (messageProjects.toLowerCase().includes('mandatory') || messageProjects.toLowerCase().includes('must be at least')) && (
+                                        <Alert severity="error" sx={{ width: '100%', mt: 2 }}
+                                               onClose={() => dispatch(resetProjectStatus())}>
+                                            {messageProjects}
+                                        </Alert>
+                                    )}
+                                <Stack direction="row" spacing={2} sx={{ mt: 3, justifyContent: 'flex-end' }}>
                                     <Button onClick={handleCloseEditProjectModal} color="inherit"
                                             disabled={isLoadingProjects}>
                                         Cancel
                                     </Button>
                                     <Button type="submit" variant="contained" disabled={isLoadingProjects}>
                                         {isLoadingProjects ?
-                                            <CircularProgress size={20} color="inherit"/> : 'Save Changes'}
+                                            <CircularProgress size={20} color="inherit" /> : 'Save Changes'}
                                     </Button>
                                 </Stack>
                             </Box>
@@ -376,16 +373,15 @@ const DashboardPage = () => {
                                 All associated tasks will also be deleted. This action cannot be undone.
                             </DialogContentText>
                             {isLoadingProjects &&
-                                <CircularProgress size={24} sx={{display: 'block', margin: '10px auto'}}/>
-                            }
+                                <CircularProgress size={24} sx={{ display: 'block', margin: '20px auto 0', mt: 2 }} />}
                         </DialogContent>
-                        <DialogActions>
+                        <DialogActions sx={{ p: '16px 24px' }}>
                             <Button onClick={handleCloseDeleteConfirm} color="inherit" disabled={isLoadingProjects}>
                                 Cancel
                             </Button>
                             <Button onClick={handleConfirmDeleteProject} color="error" variant="contained" autoFocus
                                     disabled={isLoadingProjects}>
-                                {isLoadingProjects ? <CircularProgress size={20} color="inherit"/> : 'Delete'}
+                                {isLoadingProjects ? <CircularProgress size={20} color="inherit" /> : 'Delete'}
                             </Button>
                         </DialogActions>
                     </Dialog>

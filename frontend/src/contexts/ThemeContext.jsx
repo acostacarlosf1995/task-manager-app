@@ -1,19 +1,33 @@
-import React, {createContext, useState, useMemo, useContext} from 'react';
-import {createTheme, ThemeProvider as MuiThemeProvider} from '@mui/material/styles';
+import React, { createContext, useState, useMemo, useContext, useEffect } from 'react';
+import { createTheme, ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 
 const ThemeContext = createContext({
-    toggleColorMode: () => {
-    },
+    toggleColorMode: () => {},
     mode: 'light',
 });
 
 export const useThemeMode = () => useContext(ThemeContext);
 
-export const AppThemeProvider = ({children}) => {
-    const [mode, setMode] = useState('light');
+export const AppThemeProvider = ({ children }) => {
+    const [mode, setMode] = useState(() => {
+        try {
+            const storedMode = localStorage.getItem('themeMode');
+            return storedMode ? storedMode : 'light';
+        } catch (e) {
+            return 'light';
+        }
+    });
 
-    const colorMode = useMemo(
+    useEffect(() => {
+        try {
+            localStorage.setItem('themeMode', mode);
+        } catch (e) {
+            // Silently ignore if localStorage is not available
+        }
+    }, [mode]);
+
+    const colorModeAPI = useMemo(
         () => ({
             toggleColorMode: () => {
                 setMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'));
@@ -29,26 +43,71 @@ export const AppThemeProvider = ({children}) => {
                 palette: {
                     mode,
                     ...(mode === 'light'
-                        ? { // Paleta para dark mode
-                            primary: {main: '#1976d2'},
-                            secondary: {main: '#dc004e'},
-                            background: {default: '#f4f6f8', paper: '#ffffff'},
+                        ? {
+                            primary: {
+                                main: '#2D9CDB',
+                            },
+                            secondary: {
+                                main: '#6c757d',
+                            },
+                            background: {
+                                default: '#f8f9fa',
+                                paper: '#ffffff',
+                            },
+                            text: {
+                                primary: 'rgba(0, 0, 0, 0.87)',
+                                secondary: 'rgba(0, 0, 0, 0.6)',
+                            },
+                            divider: 'rgba(0, 0, 0, 0.12)',
                         }
-                        : { // Paleta para light mode
-                            primary: {main: '#90caf9'},
-                            secondary: {main: '#f48fb1'},
-                            background: {default: '#121212', paper: '#1e1e1e'},
-                            text: {primary: '#ffffff', secondary: '#bbbbbb'}
+                        : {
+                            primary: {
+                                main: '#58a6ff',
+                            },
+                            secondary: {
+                                main: '#8b949e',
+                            },
+                            background: {
+                                default: '#0d1117',
+                                paper: '#161b22',
+                            },
+                            text: {
+                                primary: '#c9d1d9',
+                                secondary: '#8b949e',
+                            },
+                            divider: 'rgba(255, 255, 255, 0.12)',
                         }),
                 },
+                shape: {
+                    borderRadius: 8,
+                },
+                components: {
+                    // MuiAppBar: {
+                    //     styleOverrides: {
+                    //         root: ({ theme: currentTheme }) => ({
+                    //         }),
+                    //     }
+                    // },
+                    MuiFab: {
+                        styleOverrides: {
+                            secondary: ({theme: currentTheme}) => ({
+                                backgroundColor: currentTheme.palette.mode === 'dark' ? currentTheme.palette.secondary.light : currentTheme.palette.secondary.main,
+                                color: currentTheme.palette.getContrastText(currentTheme.palette.mode === 'dark' ? currentTheme.palette.secondary.light : currentTheme.palette.secondary.main),
+                                '&:hover': {
+                                    backgroundColor: currentTheme.palette.mode === 'dark' ? currentTheme.palette.secondary.main : currentTheme.palette.secondary.dark,
+                                }
+                            })
+                        }
+                    }
+                }
             }),
         [mode]
     );
 
     return (
-        <ThemeContext.Provider value={colorMode}>
+        <ThemeContext.Provider value={colorModeAPI}>
             <MuiThemeProvider theme={theme}>
-                <CssBaseline/>
+                <CssBaseline />
                 {children}
             </MuiThemeProvider>
         </ThemeContext.Provider>
