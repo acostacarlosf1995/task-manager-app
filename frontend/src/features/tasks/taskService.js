@@ -1,7 +1,9 @@
 import axios from 'axios';
 
-const API_PROJECT_TASKS_URL = (projectId) => `/api/projects/${projectId}/tasks`;
-const API_TASKS_URL = '/api/tasks/'; // URL base para crear, actualizar, eliminar tareas individuales
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+
+const API_PROJECT_TASKS_URL = (projectId) => `${API_BASE_URL}/api/projects/${projectId}/tasks`;
+const API_TASKS_URL = `${API_BASE_URL}/api/tasks/`;
 
 const getTasksByProject = async (projectId, token) => {
     const config = { headers: { Authorization: `Bearer ${token}` } };
