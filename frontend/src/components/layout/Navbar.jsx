@@ -140,7 +140,7 @@ const Navbar = () => {
         <Box sx={{ flexGrow: 1 }}>
             <AppBar position="static">
                 <Toolbar>
-                    <RouterLink to={isAuthenticated ? "/dashboard" : "/login"} style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center' }}>
+                    <RouterLink to={isAuthenticated ? "/dashboard" : "/"} style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center' }}>
                         <Logo
                             sx={{
                                 height: '50px',

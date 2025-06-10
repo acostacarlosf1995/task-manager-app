@@ -187,6 +187,7 @@ const ProjectDetailPage = () => {
         setOpenDeleteTaskConfirm(false);
         setTaskToDelete(null);
     };
+
     const handleConfirmDeleteTask = () => {
         if (taskToDelete && taskToDelete._id) {
             dispatch(deleteTask(taskToDelete._id));
